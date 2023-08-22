@@ -20,5 +20,10 @@ services:
       DB_NAME: tarea3_db
     ports:
       - "8000:8000"
+  frontend:
+    image: "app_react"
+    container_name: 'Frontend-React'
+    ports:
+      - "3000:3000"
 volumes:
   base_mysql: 
