@@ -1,0 +1,12 @@
+FROM golang:1.18
+
+WORKDIR /app
+
+COPY go.mod . 
+COPY main.go .
+
+RUN go build -o bin . 
+
+ENTRYPOINT [ "/app/bin" ]
+#sudo docker build . -t tarea4
+#sudo docker run --privileged tarea4
