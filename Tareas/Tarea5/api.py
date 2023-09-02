@@ -6,4 +6,4 @@ CORS(app)
 @app.route('/')
 def index():
     return 'Hola Mundo 202003381'
-app.run()
+app.run(host='0.0.0.0',port=5000)
