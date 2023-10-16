@@ -52,4 +52,4 @@ alcanzando el éxito partiendo de una investigación científica que sustente su
 
  ## Constancia de participación
 
-![Imagen](/Tareas/COECYS/asistencia.PNG)
+![Imagen](/Tareas/COECYS/asistencia.png)
