@@ -4,7 +4,7 @@ USE proyecto2;
 
 CREATE TABLE IF NOT EXISTS notas (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    carnet INT NOT NULL,
+    carnet VARCHAR(9) NOT NULL,
     nombre VARCHAR(255) NOT NULL,
     curso VARCHAR(5) NOT NULL,
     nota INT NOT NULL,
