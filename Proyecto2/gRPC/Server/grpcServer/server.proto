@@ -9,12 +9,12 @@ service getInfo {
 }
 
 message requestId {
-    string carnet = 1;
+    int32 carnet = 1;
     string nombre = 2;
     string curso = 3;
-    string nota = 4;
+    int32 nota = 4;
     string semestre = 5;
-    string  year = 6;
+    int32  year = 6;
 }
 
 message replyInfo {

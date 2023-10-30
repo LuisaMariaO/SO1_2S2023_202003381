@@ -14,31 +14,32 @@ import (
 var ctx = context.Background()
 
 type Data struct {
-	Carnet   string
+	Carnet   int32
 	Nombre   string
 	Curso    string
-	Nota     string
+	Nota     int32
 	Semestre string
-	Year     string
+	Year     int32
 }
 
 func insertData(c *fiber.Ctx) error {
-	var data map[string]string
+	var data = Data{}
 	e := c.BodyParser(&data)
 	if e != nil {
 		return e
 	}
+	/*
+		nota := Data{
+			Carnet:   data["carnet"],
+			Nombre:   data["nombre"],
+			Curso:    data["curso"],
+			Nota:     data["nota"],
+			Semestre: data["semestre"],
+			Year:     data["year"],
+		}
+	*/
 
-	nota := Data{
-		Carnet:   data["carnet"],
-		Nombre:   data["nombre"],
-		Curso:    data["curso"],
-		Nota:     data["nota"],
-		Semestre: data["semestre"],
-		Year:     data["year"],
-	}
-
-	go sendMysqlServer(nota)
+	go sendMysqlServer(data)
 
 	return nil
 }

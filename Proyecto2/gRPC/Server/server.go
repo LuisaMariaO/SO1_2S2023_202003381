@@ -25,12 +25,12 @@ const (
 )
 
 type Data struct {
-	Carnet   string
+	Carnet   int32
 	Nombre   string
 	Curso    string
-	Nota     string
+	Nota     int32
 	Semestre string
-	Year     string
+	Year     int32
 }
 
 func mysqlConnect() *sql.DB {
