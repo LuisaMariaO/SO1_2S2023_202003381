@@ -4,7 +4,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
 const redis = require("ioredis");
-const mysql = require("mysql");
+const mysql = require("mysql2");
 
 app.use(cors());
 
@@ -20,7 +20,7 @@ const io = new Server(server, {
 const client = redis.createClient({
     host: "localhost",
     port: 6379,
-    db: 1,
+    db: 0,
   });
 
   const db_mysql = mysql.createConnection({
@@ -40,56 +40,54 @@ const client = redis.createClient({
     console.log("Conección MySQL exitosa!");
   });
 
+  const dataToEmit = {
+    database: [],
+    cursos: [],
+    semestres: [],
+    redis: 0
+  };
+
   io.on('connection', (socket) => {
     console.log('Cliente conectado');
     //Se emiten los datos por primera vez,antes de entrar el intervalo
-    db_mysql.query('SELECT * FROM notas', (err, results) => {
-        if (err) throw err;
-        socket.emit('database-update', results);
-      });
-      //Emision de cursos disponibles al iniciar la conexion
-    db_mysql.query('SELECT DISTINCT curso FROM notas;', (err, results) => {
-        if (err) throw err;
-        socket.emit('cursos-update', results);
-      }); 
+    socket.emit('database-update', dataToEmit.database);
+    socket.emit('cursos-update', dataToEmit.cursos);
+    socket.emit('semestres-update', dataToEmit.semestres);
+    socket.emit('redis-update',dataToEmit.redis)
       
-    db_mysql.query('SELECT DISTINCT semestre FROM notas;', (err, results) => {
-        if (err) throw err;
-        socket.emit('semestres-update', results);
-      });
-      
+    //Consulta redis
+    const obtenerRegistros = async () => {
+      try {
+        const registros = await client.get("contador_notas");
+        //console.log(registros);
+        socket.emit("redis-update",registros)
+      } catch (error) {
+        console.error("Error al obtener registros:", error);
+      }
+    };
+
+    
       //Datos para las gráficas
     socket.on("enviarCursoG1", (data) => {
         
         console.log("Parámetros recibidos del cliente:", data);
         
-        db_mysql.query('SELECT carnet FROM notas where curso=\"'+data[0]+'\" AND semestre=\"'+data[1]+ '\" AND nota>=61;', (err, results) => {
+        db_mysql.query('SELECT (SELECT COUNT(*) FROM notas WHERE curso = "'+data[0]+'" AND semestre = "'+data[1]+'" AND nota >= 61) AS aprobados, (SELECT COUNT(*) FROM notas WHERE curso = "'+data[0]+'" AND semestre = "'+data[1]+'" AND nota < 61) AS reprobados;', (err, results) => {
             if (err) throw err;
-            var aprobados = results.length
-            console.log(aprobados)
-            db_mysql.query('SELECT carnet FROM notas where curso=\"'+data[0]+'\" AND semestre=\"'+data[1]+ '\" AND nota<61;', (err, results) => {
-                if (err) throw err;
-                var reprobados = results.length
-                console.log(aprobados,reprobados)
-                socket.emit('respuestaCursoG1', [aprobados,reprobados]);
-              });
-          });
+            
+          socket.emit('respuestaCursoG1', results);
       });
+    });
 
       socket.on("enviarSemestreG1", (data) => {
         
         console.log("Parámetros recibidos del cliente:", data);
-    
-        db_mysql.query('SELECT carnet FROM notas where curso=\"'+data[0]+'\" AND semestre=\"'+data[1]+ '\" AND nota>=61;', (err, results) => {
+        
+        db_mysql.query('SELECT (SELECT COUNT(*) FROM notas WHERE curso = "'+data[0]+'" AND semestre = "'+data[1]+'" AND nota >= 61) AS aprobados, (SELECT COUNT(*) FROM notas WHERE curso = "'+data[0]+'" AND semestre = "'+data[1]+'" AND nota < 61) AS reprobados;', (err, results) => {
             if (err) throw err;
-            var aprobados = results.length
-            db_mysql.query('SELECT carnet FROM notas where curso=\"'+data[0]+'\" AND semestre=\"'+data[1]+ '\" AND nota<61;', (err, results) => {
-                if (err) throw err;
-                var reprobados = results.length
-                console.log(aprobados,reprobados)
-                socket.emit('respuestaSemestreG1', [aprobados,reprobados]);
-              });
-          });
+          console.log(results)  
+          socket.emit('respuestaSemestreG1', results);
+      });
       }); 
 
       socket.on("enviarSemestreG2", (data) => {
@@ -116,29 +114,66 @@ const client = redis.createClient({
           });
       }); 
 
+      socket.on("enviarGraficaRedis", async(semestre) => {
+        
+        console.log("Parámetros recibidos del cliente:", semestre);
+    
+        try {
+          // Realiza una consulta en Redis para recuperar los datos relevantes
+          const keys = await client.keys("nota*");
+         
+          const estudiantes = await client.mget(keys);
+          
+          // Procesa los datos y cuenta la cantidad de alumnos en cada curso del semestre
+          const cursos = {};
+    
+          estudiantes.forEach((estudiante) => {
+            const Jestudiante = JSON.parse(estudiante) 
+            if (estudiante && Jestudiante.semestre === semestre) {
+              
+              const curso = Jestudiante.curso;
+              cursos[curso] = (cursos[curso] || 0) + 1;
+            }
+          });
+    
+          // Emite esta información a través de socket.io
+          console.log(cursos)
+          socket.emit("respuestaGraficaRedis", cursos);
+        } catch (error) {
+          console.error("Error al consultar y emitir datos:", error);
+        }
+    }); 
+
 
     // Emitir datos de la base de datos en tiempo real
     const emitDataPeriodically = () => {
-        db_mysql.query('SELECT * FROM notas', (err, results) => {
-          if (err) throw err;
-          socket.emit('database-update', results);
-        });
+      db_mysql.query('SELECT * FROM notas', (err, results) => {
+        if (!err) {
+          dataToEmit.database = results;
+          io.emit("database-update",results)
+        }
+      });
+    
+      db_mysql.query('SELECT DISTINCT curso FROM notas;', (err, results) => {
+        if (!err) {
+          dataToEmit.cursos = results;
+          io.emit("cursos-update",results)
+        }
+      });
+    
+      db_mysql.query('SELECT DISTINCT semestre FROM notas;', (err, results) => {
+        if (!err) {
+          dataToEmit.semestres = results;
+          io.emit("semestres-update",results)
+        }
+      });
 
-        db_mysql.query('SELECT DISTINCT curso FROM notas;', (err, results) => {
-            if (err) throw err;
-            socket.emit('cursos-update', results);
-          }); 
-
-        db_mysql.query('SELECT DISTINCT semestre FROM notas;', (err, results) => {
-            if (err) throw err;
-            socket.emit('semestres-update', results);
-            
-          });  
+      obtenerRegistros();
       };
     const interval = setInterval(emitDataPeriodically, 3000); //La data se emite cada 32 segundos para que se mantenga actualizada 
     socket.on('disconnect', () => {
       console.log('Cliente desconectado');
-      clearInterval(interval);
+      //clearInterval(interval);
     });
   });
 

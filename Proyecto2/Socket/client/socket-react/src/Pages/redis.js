@@ -31,8 +31,8 @@ Chart.register(ArcElement)
 
 
 const socket = io.connect("http://localhost:3021");
-function Index() {
-  const [registros, setRegistros] = useState([]);
+function Redis() {
+  const [registros, setRegistros] = useState(0);
   const [cursos, setCursos] = useState([]);
   const [semestres, setSemestres] = useState([]);
 
@@ -44,10 +44,9 @@ function Index() {
 
   const [promedios, setPromedios] = useState([]);
 
-  const [alumnos, setAlumnos] = useState([]);
+  const [alumnos, setAlumnos] = useState({});
 
   const navigate = useNavigate()
-
 
     //Columas Para la tabla
     const columns = [
@@ -81,7 +80,7 @@ function Index() {
     labels: ["Aprobados", "Reprobados"],
     datasets: [{
       label: ["Alumnos"],
-      data: [aprobados.map((obj) => obj.aprobados),aprobados.map((obj) => obj.reprobados)],
+      data: [aprobados[0],aprobados[1]],
       backgroundColor: [
         '#0CBE07',
         '#F84F31',
@@ -103,10 +102,10 @@ function Index() {
   }
 
   const dataG2 = {
-    labels: promedios.map((obj) => obj.nombre),
+    labels: Object.keys(alumnos),
     datasets: [{
       label: "Promedio",
-      data: promedios.map((obj) => obj.promedio),
+      data: Object.values(alumnos),
       backgroundColor: [
         '#581845',
         '#900C3F',
@@ -132,10 +131,10 @@ function Index() {
   }
 
 const dataG3 = {
-    labels: alumnos.map((obj) => obj.curso),
+    labels: [],
     datasets: [{
-      label: "Alumnos",
-      data: alumnos.map((obj) => obj.cantidad),
+      label: "Promedio",
+      data: [],
       backgroundColor: [
         '#154360',
         '#1F618D',
@@ -182,10 +181,11 @@ const dataG3 = {
     event.preventDefault();
    
 
-    socket.emit("enviarSemestreG2", event.target.value);
+    socket.emit("enviarGraficaRedis", event.target.value);
 
-    socket.on("respuestaSemestreG2", (respuesta) => {
-      setPromedios(respuesta)
+    socket.on("respuestaGraficaRedis", (respuesta) => {
+        console.log(respuesta)
+      setAlumnos(respuesta)
     });
   };
 
@@ -201,7 +201,8 @@ const dataG3 = {
   };
 
   useEffect(() => {
-    socket.on('database-update', (newData) => {
+    socket.on('redis-update', (newData) => {
+        console.log(newData)
       setRegistros(newData);
     });
     socket.on('cursos-update', (newData) => {
@@ -232,10 +233,10 @@ const dataG3 = {
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0 ">
         
         <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="" onClick={()=>navigate("/")}><h5>Tiempo real</h5></a>
+          <a class="nav-link" aria-current="page" href=""onClick={()=>navigate("/")}><h5>Tiempo real</h5></a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="" onClick={()=>navigate("/redis")}><h5>Redis</h5></a>
+          <a class="nav-link active" href="" onClick={()=>navigate("/redis")}><h5>Redis</h5></a>
         </li>
       </ul>
       </div>
@@ -243,47 +244,36 @@ const dataG3 = {
     
   </div>
 </nav>
-
-      <h2>MYSQL</h2>
+<h2>Redis</h2>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+            
+            </div>
+            <div class="col">
+                
+            </div>
+            <div class="col">
+            <h3>Cantidad de datos: {registros}</h3>
+            </div>
+        </div>
+    </div>
+      
+      
       <div class="container">
         <div class="row">
           <div class ="col">
-          <div style={{ height: "350px", overflowY:"auto" }}>
-          <DataTable
-            title={"Datos Almacenados"}
-            columns={columns}
-            data={registros}
-            responsive={true}
-            fixedHeaderScrollHeight={"100%"}
-            fixedHeader
-           
-        />
-        </div>
+          
           </div>
         </div>
         <br></br>
         <div class="row">
           <div class="col">
-            <h5>Porcentaje de aprobación de curso</h5>
-            <div style={{display:"flex"}}>
-            <select class="form-select" aria-label="Default select example" style={{width:"48%"}} onChange={handleG1}>
-              <option value={"*"} selected={true} disabled={true}>Curso</option>
-            {cursos.map((item) => (
-            <option value={item.curso}>{item.curso}</option>
-          ))}
-          </select>
-          <select class="form-select" aria-label="Default select example"style={{width:"48%"}} onChange={handleG11}>
-          <option value={"*"} selected={true} disabled={true}>Semestre</option>
-            {semestres.map((item) => (
-            <option value={item.semestre}>{item.semestre}</option>
-          ))}
-          </select>
-          </div>
-          <Pie options={optionsG1} data = {dataG1}/>
+          
           </div>
           
           <div class="col">
-          <h5>Alumnos con mejor promedio</h5>
+          <h5>Cantidad de alumnos en cada curso</h5>
           <select class="form-select" aria-label="Default select example" onChange={handleG2}>
               <option value={"*"} selected={true}>Semestre</option>
             {semestres.map((item) => (
@@ -296,14 +286,7 @@ const dataG3 = {
           </div>
 
           <div class="col">
-          <h5>Cursos con mayor número de alumnos</h5>
-          <select class="form-select" aria-label="Default select example" onChange={handleG3}>
-              <option value={"*"} selected={true}>Semestre</option>
-            {semestres.map((item) => (
-            <option value={item.semestre}>{item.semestre}</option>
-          ))}
-          </select>
-          <Bar options={optionsG3} data={dataG3} style={{height:'80%'}}></Bar>
+          
           </div>
 
         </div>
@@ -313,4 +296,4 @@ const dataG3 = {
     );
   }
   
-  export default Index;
+  export default Redis;
