@@ -3,25 +3,23 @@ kind: Ingress
 metadata:
   name: my-ingress
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
-    nginx.ingress.kubernetes.io/service-upstream: "true"
-    nginx.ingress.kubernetes.io/upstream-vhost: "luisamaria.com"
+    nginx.ingress.kubernetes.io/rewrite-target: /insert
 spec:
   rules:
-  - host: luisamaria.com
-    http:
-      paths:
-      - path: /redis
-        pathType: Prefix
-        backend:
-          service:
-            name: redis-api-service
-            port:
-              number: 3000
-      - path: /grpc
-        pathType: Prefix
-        backend:
-          service:
-            name: grpc-server
-            port:
-              number: 3000
+    - host: luisamariao.com
+      http:
+        paths:
+          - path: /grpc-client
+            pathType: Prefix
+            backend:
+              service:
+                name: grpc-client
+                port:
+                  number: 3000
+          - path: /redis-api-service
+            pathType: Prefix
+            backend:
+              service:
+                name: redis-api-service
+                port:
+                  number: 3000

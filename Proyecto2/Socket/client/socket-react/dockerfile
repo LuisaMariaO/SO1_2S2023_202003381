@@ -1,0 +1,22 @@
+FROM node:16.20.0
+# create & set working directory
+RUN mkdir -p /src
+WORKDIR /src
+# copy source files
+COPY . /src
+# install dependencies
+RUN npm install
+# build app
+RUN npm run build
+#Para servir
+RUN npm install -g serve
+EXPOSE 3000
+# start app
+CMD ["serve", "-s","build","-l","3000"]
+
+
+### CREAR LA IMAGEN LOCALMENTE
+### docker build -t socket-client .
+
+### CORRER LA IMAGEN
+### docker run -p 3000:3000 nombre_imagen

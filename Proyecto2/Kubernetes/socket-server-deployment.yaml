@@ -17,9 +17,6 @@ spec:
           image: luisamariao/socket-server:latest
           ports:
             - containerPort: 3021
-          env:
-            - name: CLIENTE
-              value: http://localhost:3020
 ---
 apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler

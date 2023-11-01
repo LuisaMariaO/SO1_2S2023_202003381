@@ -30,7 +30,7 @@ ChartJS.register(
 Chart.register(ArcElement)
 
 
-const socket = io.connect("http://localhost:3021");
+const socket = io.connect("http://34.171.248.252:3021");
 function Index() {
   const [registros, setRegistros] = useState([]);
   const [cursos, setCursos] = useState([]);
