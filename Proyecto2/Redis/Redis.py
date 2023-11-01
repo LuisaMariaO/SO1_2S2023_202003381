@@ -5,7 +5,7 @@ import mysql.connector
 
 
 app = Flask(__name__)
-redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
+redis_client = redis.StrictRedis(host='my-redis', port=6379, db=0)
 mysql_connection = mysql.connector.connect(
     host = '35.199.191.62',
     user = 'root',
@@ -67,5 +67,9 @@ def agregar_nota():
     except Exception as e:
         return str(e), 500
 
+@app.route('/get', methods=['GET'])
+def get():
+    return jsonify({"message": "API lista :3"})
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=3300, debug=True)
+    app.run(host='0.0.0.0', port=3000, debug=True)

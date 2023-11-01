@@ -5,6 +5,8 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 const redis = require("ioredis");
 const mysql = require("mysql2");
+require('dotenv').config();
+
 
 app.use(cors());
 
@@ -12,13 +14,13 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3020",
+    origin: process.env.CLIENTE,
     methods: ["GET", "POST"],
   },
 });
 
 const client = redis.createClient({
-    host: "localhost",
+    host: "my-redis",
     port: 6379,
     db: 0,
   });

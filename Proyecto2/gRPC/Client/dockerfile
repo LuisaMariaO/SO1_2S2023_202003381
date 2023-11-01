@@ -1,0 +1,12 @@
+FROM golang:1.21.3
+
+WORKDIR /app
+
+COPY go.mod . 
+COPY . .
+
+RUN go build -o bin . 
+EXPOSE 3000
+ENTRYPOINT [ "/app/bin" ]
+#sudo docker build . -t grpc-client
+#sudo docker run --privileged --pid=host -p 5002:5002 agente 

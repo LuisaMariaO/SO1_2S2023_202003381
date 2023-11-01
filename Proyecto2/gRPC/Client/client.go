@@ -45,7 +45,7 @@ func insertData(c *fiber.Ctx) error {
 }
 
 func sendMysqlServer(nota Data) {
-	conn, err := grpc.Dial("localhost:3001", grpc.WithTransportCredentials(insecure.NewCredentials()),
+	conn, err := grpc.Dial("grpc-server:3001", grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithBlock())
 	if err != nil {
 		log.Fatalln(err)

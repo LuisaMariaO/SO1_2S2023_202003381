@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: grpc-server
+  template:
+    metadata:
+      labels:
+        name: grpc-server
+    spec:
+      containers:
+        - name: grpc-server
+          image: luisamariao/grpc-server:latest
+          ports:
+            - containerPort: 3001
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hpa-grpc-server
+  namespace: so1p2
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: grpc-server
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 50

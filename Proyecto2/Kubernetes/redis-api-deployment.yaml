@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-api
+  template:
+    metadata:
+      labels:
+        app: redis-api
+    spec:
+      containers:
+        - name: redis-api
+          image: luisamariao/redis-api:latest
+          ports:
+            - containerPort: 3000
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hpa-redis-api
+  namespace: so1p2
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: redis-api
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 50

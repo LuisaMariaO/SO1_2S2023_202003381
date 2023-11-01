@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
@@ -40,14 +39,14 @@ func mysqlConnect() *sql.DB {
 		log.Fatal("Error loading .env file")
 	}
 
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbName := os.Getenv("DB_NAME")
+	dbUser := "root"
+	dbPassword := "030419"
+	dbHost := "35.199.191.62"
+	dbPort := "3306"
+	dbName := "proyecto2"
 
 	connString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", dbUser, dbPassword, dbHost, dbPort, dbName)
-
+	fmt.Println(connString)
 	//connString := "root:secret@tcp(localhost:3306)/tarea3_db?parseTime=true" -> Estructura final del string
 	conexion, err := sql.Open("mysql", connString)
 	if err != nil {
